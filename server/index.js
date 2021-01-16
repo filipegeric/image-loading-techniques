@@ -5,7 +5,7 @@ const sharp = require('sharp');
 const fs = require('fs').promises;
 const { encode } = require('blurhash');
 
-const NUMBER_OF_PHOTOS = 100;
+const NUMBER_OF_PHOTOS = 50;
 
 function componentToHex(c) {
   var hex = c.toString(16);
@@ -14,6 +14,46 @@ function componentToHex(c) {
 
 function rgbToHex(r, g, b) {
   return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+async function processImage(image) {
+  const { data } = await axios.get(image.download_url, {
+    responseType: 'arraybuffer',
+  });
+
+  const sharpInstance = sharp(data);
+
+  // get dominant color
+  const {
+    dominant: { r, g, b },
+  } = await sharpInstance.stats();
+  const color = rgbToHex(r, g, b);
+
+  // generate thumbnail
+  const buffer = await sharpInstance
+    .resize({ width: 48, kernel: 'mitchell' })
+    .webp({ quality: 5, reductionEffort: 6, alphaQuality: 5 })
+    .toBuffer();
+
+  // generate blurhash
+  const {
+    data: blurhashBuffer,
+    info,
+  } = await sharpInstance
+    .raw()
+    .ensureAlpha()
+    .resize({ width: 32, fit: 'inside' })
+    .toBuffer({ resolveWithObject: true });
+  const blurhash = encode(blurhashBuffer, info.width, info.height, 4, 4);
+
+  return {
+    url: image.download_url,
+    width: image.width,
+    height: image.height,
+    color,
+    thumbnail: buffer.toString('base64'),
+    blurhash,
+  };
 }
 
 const spinner = ora();
@@ -33,44 +73,7 @@ async function loadImages(forceRefresh) {
   const result = [];
   for (let i = 0; i < res.data.length; i++) {
     const image = res.data[i];
-    spinner.text = `Working on image ${i + 1} of ${res.data.length}`;
-    const { data } = await axios.get(image.download_url, {
-      responseType: 'arraybuffer',
-    });
-
-    const sharpInstance = sharp(data);
-
-    // get dominant color
-    const {
-      dominant: { r, g, b },
-    } = await sharpInstance.stats();
-    const color = rgbToHex(r, g, b);
-
-    // generate thumbnail
-    const buffer = await sharpInstance
-      .resize({ width: 48, kernel: 'mitchell' })
-      .webp({ quality: 5, reductionEffort: 6, alphaQuality: 5 })
-      .toBuffer();
-
-    // generate blurhash
-    const {
-      data: blurhashBuffer,
-      info,
-    } = await sharpInstance
-      .raw()
-      .ensureAlpha()
-      .resize({ width: 32, fit: 'inside' })
-      .toBuffer({ resolveWithObject: true });
-    const blurhash = encode(blurhashBuffer, info.width, info.height, 4, 4);
-
-    result.push({
-      url: image.download_url,
-      width: image.width,
-      height: image.height,
-      color,
-      thumbnail: buffer.toString('base64'),
-      blurhash,
-    });
+    result.push(await processImage(image));
   }
 
   spinner.text = 'Writing data to file...';
@@ -79,7 +82,7 @@ async function loadImages(forceRefresh) {
 }
 
 async function main() {
-  await loadImages(true);
+  await loadImages();
 
   const app = express();
 
