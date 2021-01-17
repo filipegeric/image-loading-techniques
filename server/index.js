@@ -4,8 +4,9 @@ const ora = require('ora');
 const sharp = require('sharp');
 const fs = require('fs').promises;
 const { encode } = require('blurhash');
+const cors = require('cors');
 
-const NUMBER_OF_PHOTOS = 50;
+const NUMBER_OF_PHOTOS = 10;
 
 function componentToHex(c) {
   var hex = c.toString(16);
@@ -85,6 +86,8 @@ async function main() {
   await loadImages();
 
   const app = express();
+
+  app.use(cors());
 
   app.get('/data', (_, res) => {
     res.sendFile(__dirname + '/data.json');
