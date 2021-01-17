@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/app_network_image.dart';
 import 'package:flutter_app/data_provider.dart';
-import 'package:octo_image/octo_image.dart';
 
 class ImagesPage extends StatefulWidget {
-  final Widget Function(ImageModel) placeholderBuilder;
+  final PlaceholderType placeholderType;
+  final String title;
 
   ImagesPage({
     Key key,
-    this.placeholderBuilder,
+    this.placeholderType,
+    this.title = 'Images',
   }) : super(key: key);
 
   @override
@@ -18,21 +20,11 @@ class _ImagesPageState extends State<ImagesPage> {
   bool _isLoading = true;
   bool _hasError = false;
   List<ImageModel> _images = [];
-  Map<ImageModel, Widget> placeholders = Map();
-
-  final _duration = Duration(milliseconds: 500);
 
   @override
   void initState() {
     _fetchData();
     super.initState();
-  }
-
-  Widget _getPlaceholder(ImageModel item) {
-    if (!placeholders.containsKey(item)) {
-      placeholders.putIfAbsent(item, () => widget.placeholderBuilder(item));
-    }
-    return placeholders[item];
   }
 
   Future<void> _fetchData() async {
@@ -59,7 +51,7 @@ class _ImagesPageState extends State<ImagesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Images'),
+        title: Text(widget.title),
       ),
       body: _isLoading || _hasError
           ? Center(
@@ -70,44 +62,14 @@ class _ImagesPageState extends State<ImagesPage> {
               itemBuilder: (context, index) {
                 final item = _images[index];
 
-                return ClipRRect(
-                  child: Container(
-                    margin: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 3,
-                      ),
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 1.5,
-                      child: OctoImage(
-                        image: NetworkImage(item.url),
-                        fit: BoxFit.cover,
-                        fadeInDuration: _duration,
-                        fadeOutDuration: _duration,
-                        progressIndicatorBuilder: (context, image) => Stack(
-                          children: [
-                            Positioned.fill(
-                              child: _getPlaceholder(item),
-                            ),
-                            if (image != null)
-                              Center(
-                                child: CircularProgressIndicator(
-                                  value: image.cumulativeBytesLoaded / image.expectedTotalBytes,
-                                  strokeWidth: 1,
-                                  backgroundColor: Colors.white.withOpacity(0.5),
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Theme.of(context).primaryColor),
-                                ),
-                              ),
-                          ],
-                        ),
-                        // placeholderBuilder: (context) => widget.placeholderBuilder(item),
-                        errorBuilder: OctoError.placeholderWithErrorIcon(
-                            (context) => widget.placeholderBuilder(item)),
-                      ),
-                    ),
+                return AspectRatio(
+                  aspectRatio: 1.85,
+                  child: AppNetworkImage(
+                    url: item.url,
+                    placeholderType: widget.placeholderType,
+                    blurhash: item.blurhash,
+                    hexColor: item.color,
+                    thumbnailData: item.thumbnail,
                   ),
                 );
               },

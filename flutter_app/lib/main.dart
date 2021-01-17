@@ -1,10 +1,6 @@
-import 'dart:convert';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_app/data_provider.dart';
+import 'package:flutter_app/app_network_image.dart';
 import 'package:flutter_app/images_page.dart';
-import 'package:flutter_blurhash/flutter_blurhash.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,22 +24,15 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatelessWidget {
   const HomePage({Key key}) : super(key: key);
 
-  void _openImagesPage(BuildContext context, Widget Function(ImageModel) placeholderBuilder) {
+  void _openImagesPage(BuildContext context, PlaceholderType placeholderType) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ImagesPage(
-          placeholderBuilder: placeholderBuilder,
+          placeholderType: placeholderType,
+          title: placeholderType.toString(),
         ),
       ),
     );
-  }
-
-  Color colorFromHex(String hexColor) {
-    final hexCode = hexColor.replaceAll('#', '');
-    if (hexColor.length == 6) {
-      hexColor = 'FF' + hexColor; // FF as the opacity value if you don't add it.
-    }
-    return Color(int.parse('FF$hexCode', radix: 16));
   }
 
   @override
@@ -59,63 +48,35 @@ class HomePage extends StatelessWidget {
               title: Text('No placeholder'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                _openImagesPage(context, (_) => SizedBox());
+                _openImagesPage(context, PlaceholderType.nothing);
               },
             ),
             ListTile(
               title: Text('Asset placeholder'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                _openImagesPage(
-                  context,
-                  (_) => Image.asset(
-                    'assets/placeholder.png',
-                    fit: BoxFit.cover,
-                  ),
-                );
+                _openImagesPage(context, PlaceholderType.assetPlaceholder);
               },
             ),
             ListTile(
               title: Text('Solid color'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                _openImagesPage(
-                  context,
-                  (image) => Container(
-                    color: colorFromHex(image.color),
-                  ),
-                );
+                _openImagesPage(context, PlaceholderType.solidColor);
               },
             ),
             ListTile(
               title: Text('Blurhash'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                _openImagesPage(
-                  context,
-                  (image) => Image(
-                    image: BlurHashImage(image.blurhash),
-                    fit: BoxFit.cover,
-                  ),
-                );
+                _openImagesPage(context, PlaceholderType.blurhash);
               },
             ),
             ListTile(
               title: Text('Blurred thumbnail'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                _openImagesPage(
-                  context,
-                  (image) => ClipRect(
-                    child: ImageFiltered(
-                      imageFilter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                      child: Image.memory(
-                        base64Decode(image.thumbnail),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                );
+                _openImagesPage(context, PlaceholderType.blurredThumbnail);
               },
             ),
           ],
