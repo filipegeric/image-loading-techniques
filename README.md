@@ -1,5 +1,10 @@
-1. Nothing
-2. Same placeholder image for all images
-3. Solid color
-4. Blurhash
-5. Blurred thumbnail
+# Nothing
+![](demos/nothing.gif | width=200)
+# Same placeholder image for all images
+![](demos/asset.gif | width=200)
+# Solid color
+![](demos/color.gif | width=200)
+# Blurhash
+![](demos/blurhash.gif | width=200)
+# Blurred thumbnail
+![](demos/thumb.gif | width=200)
