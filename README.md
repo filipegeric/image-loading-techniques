@@ -1,10 +1,10 @@
 # Nothing
-![](demos/nothing.gif | width=200)
+![](demos/nothing.gif)
 # Same placeholder image for all images
-![](demos/asset.gif | width=200)
+![](demos/asset.gif)
 # Solid color
-![](demos/color.gif | width=200)
+![](demos/color.gif)
 # Blurhash
-![](demos/blurhash.gif | width=200)
+![](demos/blurhash.gif)
 # Blurred thumbnail
-![](demos/thumb.gif | width=200)
+![](demos/thumb.gif)
